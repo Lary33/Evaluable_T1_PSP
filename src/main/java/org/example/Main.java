@@ -3,20 +3,31 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Scanner;
-
-import static org.example.PingWorker.pingWorker;
+import java.util.Optional;
 
 public class Main {
-    static void main() throws IOException, InterruptedException {
-        Scanner sc = new Scanner(System.in);
+    static void main(String[] args) throws IOException, InterruptedException {
+        String ip = args[0];
+        System.out.println("PID del coordinador: " + ProcessHandle.current().pid());
 
-        System.out.println("Escribe el comando de Linux a ejecutar");
-        String comando = sc.nextLine();
+        Optional<String> java = ProcessHandle.current().info().command();
+        String classPath = System.getProperty("java.class.path");
+        String pingWorker = PingWorker.class.getName();
 
-        System.out.println("Escribe el primer argumento para el comando que has escrito anteriormente");
-        String arg1 = sc.nextLine();
+        ProcessBuilder processBuilder = new ProcessBuilder(java.orElse(null), "-cp", classPath, pingWorker, ip);
+        try {
+            Process process = processBuilder.start();
 
-        pingWorker(comando, arg1);
+            System.out.println("Lanzando PingWorker");
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String linea;
+            while ((linea = reader.readLine()) != null) System.out.println(linea);
+
+            int exit = process.waitFor();
+            System.out.println("PingWorker terminó con salida: " + exit);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
