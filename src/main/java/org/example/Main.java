@@ -3,18 +3,14 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Optional;
+import java.util.Scanner;
 
 public class Main {
-    static void main(String[] args) throws IOException, InterruptedException {
-        String ip = args[0];
+    public static void main(String[] args) throws InterruptedException {
+        String ip = "10.112.11.8";
         System.out.println("PID del coordinador: " + ProcessHandle.current().pid());
 
-        Optional<String> java = ProcessHandle.current().info().command();
-        String classPath = System.getProperty("java.class.path");
-        String pingWorker = PingWorker.class.getName();
-
-        ProcessBuilder processBuilder = new ProcessBuilder(java.orElse(null), "-cp", classPath, pingWorker, ip);
+        ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", "target/classes", "org.example.PingWorker", ip);
         try {
             Process process = processBuilder.start();
 
@@ -22,6 +18,7 @@ public class Main {
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String linea;
+
             while ((linea = reader.readLine()) != null) System.out.println(linea);
 
             int exit = process.waitFor();
